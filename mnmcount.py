@@ -1,3 +1,7 @@
+## Demo code for counting M&Ms by color and state using PySpark DataFrame API
+
+# References: Code from the book "Learning Spark: Lightning-Fast Data Analytics" by Jules S. Damji, Brooke Wenig, Tathagata Das, and Denny Lee, published by O'Reilly Media; 2nd edition (August 25, 2020); eBook (Compliments of databricks)
+
 # Import the necessary libraries.
 # Since we are using Python, import the SparkSession and related functions
 # from the PySpark module.
