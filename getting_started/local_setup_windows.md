@@ -2,7 +2,7 @@
 
 This guide walks you through setting up this repo on Windows 10/11 using
 [uv](https://docs.astral.sh/uv/) as the package manager. It mirrors
-`getting_started.md` (macOS), but Windows needs a few extra steps that Unix
+`local_setup_mac.md`, but Windows needs a few extra steps that Unix
 systems don't — mainly Hadoop's `winutils.exe` and telling Spark which
 Python interpreter to use.
 
@@ -210,17 +210,24 @@ driver hanging on `getOrCreate()`.
 If everything is set up correctly, you should see a small PySpark DataFrame
 printed to the console along with an average age calculation.
 
-### 5. Download the sample dataset
+### 5. Download the sample datasets
 
-`get_data.py` downloads a dataset into `.\data`, extracting it automatically
-if it's a zip archive:
+`get_data.py` downloads into `.\data`, extracting zip archives automatically.
+The datasets the notebook, `mnmcount.py` and the labs use are available by
+name:
 
 ```powershell
-uv run python get_data.py
+uv run python get_data.py --dataset reviews   # Amazon/Google reviews (default)
+uv run python get_data.py --dataset mnm       # M&M counts, used by mnmcount.py
+uv run python get_data.py --dataset flights   # US departure delays
+uv run python get_data.py --dataset taxi      # NYC yellow taxi, Jan 2023 (~46 MB), used by labs/L2
 ```
 
-To use a different dataset, pass `--url`. GitHub `blob` page URLs are
-resolved to their raw content automatically:
+`--list` shows what you already have, and `--force` re-downloads a file you
+already fetched.
+
+For anything else, pass `--url`. GitHub `blob` page URLs are resolved to their
+raw content automatically:
 
 ```powershell
 uv run python get_data.py --url https://github.com/databricks/LearningSparkV2/blob/master/databricks-datasets/learning-spark-v2/mnm_dataset.csv
@@ -303,38 +310,20 @@ uv run jupyter lab
 Or open `getting_started.ipynb` in VS Code and select the
 `.venv\Scripts\python.exe` interpreter as the kernel.
 
-**One change is required in the notebook on Windows.** The environment-setup
-cell resolves `JAVA_HOME` by shelling out to Homebrew:
+The notebook's setup cell is already cross-platform: it only shells out to
+Homebrew on macOS, otherwise it expects the `JAVA_HOME` you set in step 1 and
+tells you so if it's missing. It also sets `PYSPARK_PYTHON` to the kernel's
+own interpreter (`sys.executable`), which sidesteps the `python3` lookup
+problem entirely — so you don't need step 3's variables for notebook work,
+only for `spark-submit` and plain scripts.
 
-```python
-if "JAVA_HOME" not in os.environ:
-    os.environ["JAVA_HOME"] = subprocess.check_output(["brew", "--prefix", "openjdk@17"], text=True).strip()
-```
+`labs/L2/lab.py` opens with the same block, so it behaves identically whether
+you run it as a script or as VS Code cells.
 
-`brew` doesn't exist on Windows, so that call fails with
-`FileNotFoundError: [WinError 2]`. Since you set `JAVA_HOME` at the user level
-in step 1, the `if` guard normally skips it — but if your kernel was started
-before you set the variable, or you'd like the notebook to be portable,
-replace that cell with a cross-platform version:
-
-```python
-import os
-import subprocess
-import sys
-
-if "JAVA_HOME" not in os.environ:
-    if sys.platform == "darwin":
-        os.environ["JAVA_HOME"] = subprocess.check_output(["brew", "--prefix", "openjdk@17"], text=True).strip()
-    else:
-        raise RuntimeError("Set JAVA_HOME for your user account, then restart the kernel.")
-
-os.environ["PATH"] = os.path.join(os.environ["JAVA_HOME"], "bin") + os.pathsep + os.environ.get("PATH", "")
-os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
-```
-
-Setting `PYSPARK_PYTHON` to `sys.executable` makes Spark's Python workers use
-the exact interpreter running the kernel, which sidesteps the `python3`
-lookup problem entirely.
+If the cell raises `Set JAVA_HOME for your user account, then restart the
+kernel`, the kernel was started before you set the variable — quit VS Code (or
+the Jupyter server) completely and reopen it. Restarting just the kernel is
+not enough; the parent process caches the environment it was launched with.
 
 ## Troubleshooting
 
@@ -369,6 +358,17 @@ already-open windows.
 The kernel was launched before you set the user environment variables. Fully
 quit and restart VS Code (not just the kernel) — it caches the environment it
 was started with.
+
+**`LOCATION_ALREADY_EXISTS` when re-running a `saveAsTable` cell**
+Spark's catalog lives in `metastore_db\` and the table files in
+`spark-warehouse\`. If you delete one without the other they fall out of sync:
+Spark no longer knows the table but its directory is still on disk, so
+`saveAsTable` refuses to reuse the name. Delete both together for a clean
+slate:
+```powershell
+Remove-Item -Recurse -Force spark-warehouse, metastore_db, derby.log -ErrorAction SilentlyContinue
+```
+Both are git-ignored, and both are recreated on the next run.
 
 **`WARN Utils: Your hostname ... resolves to a loopback address`**
 Harmless on machines whose hostname doesn't resolve to a LAN IP — Spark still

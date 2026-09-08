@@ -1,6 +1,19 @@
-## Demo code for counting M&Ms by color and state using PySpark DataFrame API
+## Demo code for counting M&Ms by color and state using PySpark DataFrame API and spark-submit
 
-# References: Code from the book "Learning Spark: Lightning-Fast Data Analytics" by Jules S. Damji, Brooke Wenig, Tathagata Das, and Denny Lee, published by O'Reilly Media; 2nd edition (August 25, 2020); eBook (Compliments of databricks)
+# References: code from the book "Learning Spark: Lightning-Fast Data Analytics" by
+# Jules S. Damji, Brooke Wenig, Tathagata Das and Denny Lee, published by O'Reilly Media;
+# 2nd edition (August 25, 2020); eBook (compliments of Databricks).
+
+# Prerequisites:
+# - follow the instructions in getting_started/ to set up your environment
+# - download the M&M dataset:
+#   ```bash
+#   uv run python get_data.py --dataset mnm
+#   ```
+# - run spark-submit to execute the code below, passing the path to the dataset:
+#   ```bash
+#   uv run spark-submit mnmcount.py data/mnm_dataset.csv
+#   ```
 
 # Import the necessary libraries.
 # Since we are using Python, import the SparkSession and related functions

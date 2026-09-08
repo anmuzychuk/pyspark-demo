@@ -8,5 +8,14 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Downloaded datasets
 /data/
-/spark-warehouse/
+
+# Spark local metastore and warehouse (created wherever you run Spark from)
+spark-warehouse/
+metastore_db/
+derby.log

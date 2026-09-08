@@ -1,7 +1,7 @@
 [project]
 name = "pyspark-demo"
 version = "0.1.0"
-description = "Add your description here"
+description = "PySpark on a local machine: setup, examples and labs"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -15,9 +15,12 @@ dependencies = [
 [dependency-groups]
 dev = [
     "jupyter>=1.1.1",
+    "nbstripout>=0.8.1",
 ]
 
 [tool.ruff]
 line-length = 120
-lint.extend-select = ["E", "W", "I", "N", "D", "T20", "ANN"]
-lint.ignore = ["D1", "D401"]
+# Teaching code: print() is the output mechanism, and `functions as F` is the universal
+# PySpark convention — so no T20/ANN/D, and N812 is off.
+lint.extend-select = ["E", "W", "I", "N"]
+lint.ignore = ["N812"]

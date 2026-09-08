@@ -1,0 +1,2 @@
+# Notebooks are stored without outputs. See "Maintaining this repo" in README.md.
+*.ipynb filter=nbstripout diff=ipynb

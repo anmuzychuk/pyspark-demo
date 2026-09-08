@@ -82,17 +82,24 @@ uv run python main.py
 If everything is set up correctly, you should see a small PySpark
 DataFrame printed to the console along with an average age calculation.
 
-### 4. Download the sample dataset
+### 4. Download the sample datasets
 
-`get_data.py` downloads a dataset into `./data`, extracting it automatically
-if it's a zip archive:
+`get_data.py` downloads into `./data`, extracting zip archives automatically.
+The datasets the notebook, `mnmcount.py` and the labs use are available by
+name:
 
 ```bash
-uv run python get_data.py
+uv run python get_data.py --dataset reviews   # Amazon/Google reviews (default)
+uv run python get_data.py --dataset mnm       # M&M counts, used by mnmcount.py
+uv run python get_data.py --dataset flights   # US departure delays
+uv run python get_data.py --dataset taxi      # NYC yellow taxi, Jan 2023 (~46 MB), used by labs/L2
 ```
 
-To use a different dataset, pass `--url`. GitHub `blob` page URLs are
-resolved to their raw content automatically:
+`--list` shows what you already have, and `--force` re-downloads a file you
+already fetched.
+
+For anything else, pass `--url`. GitHub `blob` page URLs are resolved to their
+raw content automatically:
 
 ```bash
 uv run python get_data.py --url https://github.com/databricks/LearningSparkV2/blob/master/databricks-datasets/learning-spark-v2/mnm_dataset.csv
@@ -111,11 +118,23 @@ install. You can list installed JDKs with `brew list --formula | grep openjdk`.
 **Works in a terminal but fails in Jupyter with `Unable to locate a Java Runtime`**
 Notebook kernels launched from an IDE (VS Code, PyCharm) or a GUI app (Jupyter
 Desktop) don't source `~/.zshrc`, so `JAVA_HOME` may never reach the kernel
-process even if it's set in your shell profile. `getting_started.ipynb`
-handles this itself — its first cell resolves `JAVA_HOME` via
-`brew --prefix openjdk@17` at runtime instead of relying on the shell
-environment. If you write your own notebook, copy that pattern into your
-first cell before creating a `SparkSession`.
+process even if it's set in your shell profile. `getting_started.ipynb` and
+`labs/L2/lab.py` handle this themselves — their setup cell resolves
+`JAVA_HOME` via `brew --prefix openjdk@17` at runtime instead of relying on
+the shell environment, and sets `PYSPARK_PYTHON` to the kernel's own
+interpreter. If you write your own notebook, copy that cell before creating a
+`SparkSession`.
+
+**`LOCATION_ALREADY_EXISTS` when re-running a `saveAsTable` cell**
+Spark's catalog lives in `metastore_db/` and the table files in
+`spark-warehouse/`. If you delete one without the other they fall out of sync:
+Spark no longer knows the table but its directory is still on disk, so
+`saveAsTable` refuses to reuse the name. Delete both together for a clean
+slate:
+```bash
+rm -rf spark-warehouse metastore_db derby.log
+```
+Both are git-ignored, and both are recreated on the next run.
 
 **`WARN Utils: Your hostname ... resolves to a loopback address`**
 This is a harmless warning on machines where the hostname doesn't resolve
@@ -172,6 +191,17 @@ export SPARK_HOME="$(uv run python -c 'import pyspark, os; print(os.path.dirname
 export PYSPARK_PYTHON="$(pwd)/.venv/bin/python"
 "$SPARK_HOME/bin/spark-submit" mnmcount.py data/mnm_dataset.csv
 ```
+
+## Running the Notebook
+
+Launch Jupyter through `uv` so the kernel inherits the project venv:
+
+```bash
+uv run jupyter lab
+```
+
+Or open `getting_started.ipynb` in VS Code and select `.venv/bin/python` as
+the kernel.
 
 ## Adding New Dependencies
 

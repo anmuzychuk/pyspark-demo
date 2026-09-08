@@ -1,0 +1,16 @@
+#!/bin/sh
+# Refuse to push commits whose notebooks still carry outputs.
+#
+# The nbstripout clean filter (see .gitattributes) normally strips them at commit time. But
+# git silently ignores a filter that is not defined in .git/config, so a clone where
+# `nbstripout --install` was never run commits outputs with no warning. This is that warning.
+#
+# Only the standard library is needed, so prefer the project venv but fall back to any
+# python3 — this must keep working even when the venv is missing.
+if [ -x ".venv/bin/python" ]; then
+    PY=".venv/bin/python"
+else
+    PY="python3"
+fi
+
+exec "$PY" .githooks/check_notebook_outputs.py
