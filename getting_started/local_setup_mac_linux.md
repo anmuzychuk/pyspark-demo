@@ -16,6 +16,8 @@ PySpark runs on the JVM under the hood, so you need two things installed:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+Linux users: Homebrew is not added automatically to PATH, please follow the installation instructions. 
+
 ### 2. Install Java
 
 ```bash
@@ -25,8 +27,15 @@ brew install openjdk@17
 `openjdk@17` is keg-only (not symlinked into `/opt/homebrew` by default), so
 PySpark needs to be told where to find it. Add this to your `~/.zshrc`:
 
+
+
 ```bash
-export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+# Mac
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17" 
+
+# Linux: 
+# export JAVA_HOME="$(brew --prefix openjdk@17)"
+
 export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
