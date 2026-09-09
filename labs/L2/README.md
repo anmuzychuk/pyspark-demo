@@ -26,9 +26,10 @@ uv run python get_data.py --dataset taxi
 
 That fetches one month of NYC yellow taxi trips (~46 MB) into `data/`.
 
-## The lab notebook
+## The notebooks
 
-**`lab.ipynb`** — run it in JupyterLab:
+**`lab.ipynb`** — the five marked exercises. **`appendix_catalogs.ipynb`** — an unmarked appendix
+on where tables are stored (see below). Run them in JupyterLab:
 
 ```sh
 uv run jupyter lab          # then open labs/L2/lab.ipynb
@@ -62,11 +63,20 @@ the last cell, `spark.stop()`, until you have captured both screenshots.
 Every exercise has a written component. The writing is what is being marked — the code
 is mostly given.
 
-The notebook ends with an **appendix on the catalog / database / table hierarchy** — where a
-table's metadata and its bytes actually live, and what changes when you point Spark at a
-different catalog. It is not marked and does not affect the rubric, but it explains the
-`metastore_db/` and `spark-warehouse/` directories that appear in your repo root, and it is
-the local counterpart to Unity Catalog.
+## Appendix — where does a table actually live?
+
+A second notebook, **[`appendix_catalogs.ipynb`](appendix_catalogs.ipynb)**, covers the
+**catalog / database / table hierarchy** — where a table's metadata and its bytes actually live,
+and what changes when you point Spark at a different catalog. It is not marked and does not
+affect the rubric, but it explains the `metastore_db/` and `spark-warehouse/` directories that
+appear in your repo root, and it is the local counterpart to Unity Catalog.
+
+Run it after `lab.ipynb`, or on its own — it builds the table it needs if the lab has not already
+made one. It takes about 15 seconds. To clean up what it creates:
+
+```sh
+rm -rf custom_warehouse taxi_catalog_db
+```
 
 ## Deliverable
 
