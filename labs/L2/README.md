@@ -62,6 +62,12 @@ the last cell, `spark.stop()`, until you have captured both screenshots.
 Every exercise has a written component. The writing is what is being marked — the code
 is mostly given.
 
+The notebook ends with an **appendix on the catalog / database / table hierarchy** — where a
+table's metadata and its bytes actually live, and what changes when you point Spark at a
+different catalog. It is not marked and does not affect the rubric, but it explains the
+`metastore_db/` and `spark-warehouse/` directories that appear in your repo root, and it is
+the local counterpart to Unity Catalog.
+
 ## Deliverable
 
 `L2_<your-surname>.ipynb` — a copy of `lab.ipynb` with:

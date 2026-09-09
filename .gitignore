@@ -19,3 +19,9 @@ wheels/
 spark-warehouse/
 metastore_db/
 derby.log
+
+# Created by the catalog appendix in labs/L2
+custom_warehouse/
+taxi_catalog_db/
+.playwright*/
+.wip/
