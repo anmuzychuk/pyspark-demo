@@ -5,10 +5,13 @@ description = "PySpark on a local machine: setup, examples and labs"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "avro>=1.12.2",
+    "delta-spark==4.4.0",
     "matplotlib>=3.11.1",
     "pandas<3.0.0",
     "pyarrow>=18.0.0",
     "pyspark>=4.2.0",
+    "rich>=15.0.0",
     "seaborn>=0.13.2",
 ]
 
@@ -17,6 +20,15 @@ dev = [
     "jupyter>=1.1.1",
     "nbstripout>=0.8.1",
 ]
+
+# Makes the project itself installable, so `uv sync` puts the pyspark_demo/ helpers package
+# into .venv (editable) and `from pyspark_demo.utils import ...` works from any script or notebook.
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.ruff]
 line-length = 120

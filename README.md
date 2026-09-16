@@ -31,6 +31,7 @@ uv run python main.py
 | `mnmcount.py` | A standalone job, meant to be run with `spark-submit` |
 | `getting_started.ipynb` | Notebook tour: DataFrames, the Spark UI, RDDs, managed tables |
 | `labs/` | Graded lab assignments |
+| `pyspark_demo/` | Shared helpers imported by labs (`from pyspark_demo.utils import ...`) |
 | `getting_started/` | Platform setup guides |
 
 ## Datasets
