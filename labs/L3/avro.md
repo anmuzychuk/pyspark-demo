@@ -1,10 +1,10 @@
 # Avro: file anatomy, schemas and sync markers
 
-Notes for L3, based on `labs/L3/avro_write.py`, which writes `data/user.avro`.
+Notes for L3, based on `labs/L3/avro_example.py`, which writes `data/user.avro` and reads it back.
 
 ## 1. What's in `data/user.avro` (301 bytes)
 
-`avro_write.py` writes 3 records (Alice, Bob, Charlie) with this schema:
+`avro_example.py` writes 3 records (Alice, Bob, Charlie) with this schema:
 
 ```json
 {
@@ -153,15 +153,8 @@ For a local one-off file like `user.avro`, leaving the namespace out is fine.
   - `{"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2}`
   - `{"type": "string", "logicalType": "uuid"}`
 
-## 5. Optional fields: put `null` first
 
-The current schema uses `["int", "null"]` with no `default`. It works, but:
-
-- **A union's default must match its first branch.** With `int` first you can't write `"default": null`.
-- **The convention is `["null", "int"]` with `"default": null`.** That makes the field truly optional.
-- **It matters once schemas change.** Suppose you later add a field and read the old `user.avro` with the new schema. If the new field has no `default`, reading fails, because the old data doesn't have it. Put `null` first and give optional fields a default.
-
-## 6. The sync marker
+## 5. The sync marker
 
 A **sync marker** is 16 random bytes the writer picks once per file. It's stored at the end of the header and written again after every data block:
 
@@ -179,32 +172,15 @@ A **sync marker** is 16 random bytes the writer picks once per file. It's stored
 marker offsets: 150, 64171, 128196, 192222, 256248, 291999
 ```
 
-Script to generate it and find the markers:
+That file and those offsets come from `labs/L3/avro_write_synthetic_data.py`, which writes the
+20,000 records and then scans the bytes for the marker:
 
-```python
-import avro.schema
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
-
-path = "data/users_big.avro"
-schema = avro.schema.parse(
-    '{"type": "record", "name": "User", "fields": ['
-    '{"name": "id", "type": "long"}, {"name": "name", "type": "string"}]}'
-)
-with open(path, "wb") as f:
-    writer = DataFileWriter(f, DatumWriter(), schema)
-    for i in range(20_000):
-        writer.append({"id": i, "name": f"user_{i:06d}"})
-    writer.close()
-
-data = open(path, "rb").read()
-sync = DataFileReader(open(path, "rb"), DatumReader()).sync_marker
-offsets, pos = [], 0
-while (pos := data.find(sync, pos)) != -1:
-    offsets.append(pos)
-    pos += len(sync)
-print(offsets)
+```bash
+uv run python labs/L3/avro_write_synthetic_data.py
 ```
+
+The marker is random per file, so your offsets will be close to these but not identical, and the
+byte dump in section 1 will show a different marker after you rewrite `data/user.avro`.
 
 ## 7. How Spark uses sync markers to split files
 
@@ -235,23 +211,12 @@ split [200000, 292015)  skips to marker 256248; owns 256248
 
 A pure-Python simulation of the rule above predicted exactly these row counts (9084 / 8534 / 2382). In total Spark read 20,000 rows and 20,000 distinct ids, so nothing was lost or read twice.
 
-```python
-from pyspark.sql import SparkSession, functions as F
+The table comes from `labs/L3/spark_avro_read_parquet_write.py`, which groups by
+`spark_partition_id()` to count the rows each task read. It then writes the Parquet folder that
+[parquet.md](parquet.md) picks apart:
 
-spark = (
-    SparkSession.builder.master("local[4]")
-    .config("spark.jars.packages", "org.apache.spark:spark-avro_2.13:4.2.0")
-    .config("spark.sql.files.maxPartitionBytes", "100000")
-    .getOrCreate()
-)
-df = spark.read.format("avro").load("data/users_big.avro")
-print(df.rdd.getNumPartitions())  # 3
-(
-    df.groupBy(F.spark_partition_id().alias("partition"))
-    .agg(F.count("*").alias("rows"), F.min("id").alias("min_id"), F.max("id").alias("max_id"))
-    .orderBy("partition")
-    .show()
-)
+```bash
+uv run python labs/L3/spark_avro_read_parquet_write.py
 ```
 
 ### What Spark gains from this

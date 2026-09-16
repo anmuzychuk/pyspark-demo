@@ -12,8 +12,8 @@ schema_json = """
   "name": "User",
   "fields": [
     {"name": "name", "type": "string"},
-    {"name": "favorite_number", "type": ["int", "null"]},
-    {"name": "favorite_color", "type": ["string", "null"]}
+    {"name": "favorite_number", "type": ["null", "int"]},
+    {"name": "favorite_color", "type": [ "null", "string"]}
   ]
 }
 """

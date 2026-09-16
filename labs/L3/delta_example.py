@@ -10,6 +10,8 @@ from pathlib import Path
 
 from pyspark.sql import SparkSession
 
+from pyspark_demo.display_utils import display_dataframe
+
 # Absolute path: SQL's delta.`<path>` syntax does not accept relative paths
 table_path = Path("data/users_big.delta").resolve()
 
@@ -35,8 +37,12 @@ df.write.format("delta").mode("overwrite").save(str(table_path))
 
 print("Reading back...")
 spark.read.format("delta").load(str(table_path)).show(5)
-spark.sql(f"DESCRIBE HISTORY delta.`{table_path}`").select(
+
+
+hist = spark.sql(f"DESCRIBE HISTORY delta.`{table_path}`").select(
     "version", "operation", "operationParameters", "operationMetrics"
-).show(truncate=False)
+)
+
+display_dataframe(hist.toPandas())
 
 spark.stop()
