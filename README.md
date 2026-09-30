@@ -7,7 +7,7 @@ no cloud account. Everything runs in local mode against a JVM on your machine.
 
 Follow the guide for your platform, then come back here:
 
-- **macOS** — [`getting_started/local_setup_mac.md`](getting_started/local_setup_mac.md)
+- **macOS / Linux** — [`getting_started/local_setup_mac_linux.md`](getting_started/local_setup_mac_linux.md)
 - **Windows** — [`getting_started/local_setup_windows.md`](getting_started/local_setup_windows.md)
 
 Both cover installing a JDK and [uv](https://docs.astral.sh/uv/), syncing the project,

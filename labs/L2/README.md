@@ -14,7 +14,7 @@
 
 ## Prerequisites
 
-A working local Spark setup — [`getting_started/local_setup_mac.md`](../../getting_started/local_setup_mac.md)
+A working local Spark setup — [`getting_started/local_setup_mac_linux.md`](../../getting_started/local_setup_mac_linux.md)
 or [`getting_started/local_setup_windows.md`](../../getting_started/local_setup_windows.md).
 
 Then, from the **repo root**:

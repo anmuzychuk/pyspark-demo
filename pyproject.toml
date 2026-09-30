@@ -10,9 +10,10 @@ dependencies = [
     "matplotlib>=3.11.1",
     "pandas<3.0.0",
     "pyarrow>=18.0.0",
-    "pyspark>=4.2.0",
+    "pyspark==4.2.0",
     "rich>=15.0.0",
     "seaborn>=0.13.2",
+    "streamlit>=1.64.0",
 ]
 
 [dependency-groups]

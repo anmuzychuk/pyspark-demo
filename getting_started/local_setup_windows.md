@@ -2,7 +2,7 @@
 
 This guide walks you through setting up this repo on Windows 10/11 using
 [uv](https://docs.astral.sh/uv/) as the package manager. It mirrors
-`local_setup_mac.md`, but Windows needs a few extra steps that Unix
+`local_setup_mac_linux.md`, but Windows needs a few extra steps that Unix
 systems don't — mainly Hadoop's `winutils.exe` and telling Spark which
 Python interpreter to use.
 
