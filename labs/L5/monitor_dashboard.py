@@ -1,9 +1,10 @@
-"""Live dashboard for the progress CSV written by pyspark_demo.streaming.SimpleMetricsListener.
+"""Live dashboard for the progress CSV written by pyspark_demo.streaming.FileMetricsListener.
 
     uv run streamlit run labs/L5/monitor_dashboard.py
     uv run streamlit run labs/L5/monitor_dashboard.py -- --csv path/to/progress.csv
 
-Start it before the live-stream cell of L5_streaming.ipynb; it rereads the CSV every 2 seconds.
+Start it before the live pipeline cell of L5_streaming.ipynb (section 8); it rereads the CSV every 2 seconds.
+What every chart shows: labs/L5/stream_monitor.md.
 """
 
 import argparse
@@ -54,29 +55,40 @@ def dashboard() -> None:
     c3.metric("Last batch", f"{int(last['trigger_ms']):,} ms", help=f"{last['query_name']}, batch {last['batch_id']}")
     c4.metric("Dropped by watermark", f"{int(df['rows_dropped_by_watermark'].sum()):,}")
 
-    # Q7: a query that takes in rows faster than it processes them builds a backlog.
+    # Q9c: a query that takes in rows faster than it processes them builds a backlog.
     for name, g in df.groupby("query_name"):
         recent = g.tail(5)
         if recent["input_rows_per_sec"].mean() > recent["processed_rows_per_sec"].mean():
             st.warning(f"{name}: input rate is above processing rate over the last 5 batches — falling behind")
 
+    # Full width: six series (input and processed per query) need room for their legend.
+    rates = df.melt(
+        id_vars=["time", "query_name"],
+        value_vars=["input_rows_per_sec", "processed_rows_per_sec"],
+        var_name="rate",
+    )
+    rates["series"] = rates["query_name"] + " · " + rates["rate"].str.replace("_rows_per_sec", "")
+    st.caption("Rows per second (input vs processed)")
+    st.line_chart(rates, x="time", y="value", color="series")
+
+    # Only stateful queries have a watermark, and before their first batch Spark reports the epoch.
+    # Blank those values instead of dropping the rows: every chart then has the same queries, in the
+    # same order, so each query keeps its colour across charts.
+    wm = pd.to_datetime(df["watermark"], errors="coerce", utc=True)
+    df = df.assign(watermark_time=wm.where(wm > pd.Timestamp("1971-01-01", tz="UTC")))
+
     left, right = st.columns(2)
     with left:
-        rates = df.melt(
-            id_vars=["time", "query_name"],
-            value_vars=["input_rows_per_sec", "processed_rows_per_sec"],
-            var_name="rate",
-        )
-        rates["series"] = rates["query_name"] + " · " + rates["rate"].str.replace("_rows_per_sec", "")
-        st.caption("Rows per second (input vs processed)")
-        st.line_chart(rates, x="time", y="value", color="series")
-        chart(df, "state_rows", "State rows held")
-    with right:
         chart(df, "trigger_ms", "Batch duration (ms)")
+        chart(df, "state_rows", "State rows held")
+        if "duplicates_dropped" in df:  # absent in CSVs written before the column was added
+            chart(df, "duplicates_dropped", "Duplicates dropped")
+    with right:
+        chart(df, "watermark_time", "Watermark (event time the query has declared complete)")
         chart(df, "rows_dropped_by_watermark", "Rows dropped by watermark")
 
     st.caption("Last 20 batches")
-    st.dataframe(df.drop(columns="time").tail(20).iloc[::-1], hide_index=True, width="stretch")
+    st.dataframe(df.drop(columns=["time", "watermark_time"]).tail(20).iloc[::-1], hide_index=True, width="stretch")
 
 
 dashboard()
